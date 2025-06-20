@@ -1,40 +1,47 @@
-const chatBox = document.getElementById("chat");
 const input = document.getElementById("input");
-const send = document.getElementById("send");
+const sendButton = document.getElementById("send");
+const chatBox = document.getElementById("chat");
 
-send.addEventListener("click", async () => {
-  const msg = input.value.trim();
-  if (!msg) return;
+// 🔁 Replace this with your actual backend URL from Render
+const BACKEND_URL = "https://chatbot1-tskq.onrender.com/chat";
 
-  appendMessage("You", msg);
+sendButton.addEventListener("click", async () => {
+  const userInput = input.value.trim();
+  if (!userInput) return;
+
+  // Add user message to chat
+  addMessage("You", userInput, "user");
+
+  // Clear input
   input.value = "";
 
   try {
-    const res = await fetch("https://chatbot1-tskq.onrender.com/chat", {
+    const response = await fetch(BACKEND_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: msg }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ message: userInput }),
     });
 
-    if (!res.ok) {
-      appendMessage("Gemini", `❌ Error: ${res.status} ${res.statusText}`);
-      return;
-    }
+    if (!response.ok) throw new Error("Server error");
 
-    const data = await res.json();
-    if (data.reply) {
-      appendMessage("Gemini", data.reply);
-    } else {
-      appendMessage("Gemini", "❌ No reply received.");
-    }
+    const data = await response.json();
+
+    // Add bot response to chat
+    addMessage("Bot", data.reply, "bot");
+
   } catch (error) {
-    appendMessage("Gemini", `❌ Network error: ${error.message}`);
+    addMessage("Bot", "❌ Sorry, there was a problem connecting to the server.", "bot");
+    console.error(error);
   }
 });
 
-function appendMessage(sender, text) {
-  const div = document.createElement("div");
-  div.textContent = `${sender}: ${text}`;
-  chatBox.appendChild(div);
-  chatBox.scrollTop = chatBox.scrollHeight;
+// Helper function to add messages to chat box
+function addMessage(sender, text, className) {
+  const msg = document.createElement("div");
+  msg.classList.add("message", className);
+  msg.innerHTML = `<strong>${sender}:</strong> ${text}`;
+  chatBox.appendChild(msg);
+  chatBox.scrollTop = chatBox.scrollHeight; // Auto scroll
 }
