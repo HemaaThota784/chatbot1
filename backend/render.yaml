@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: gemini-chat-backend
+    env: python
+    plan: free          # <‑‑ the free‑tier instance
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python app.py"
